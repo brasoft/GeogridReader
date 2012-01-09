@@ -489,7 +489,7 @@ public class GraphicTestView extends View {
 	}
 
 	public String getName() {
-		return mph.MapName;
+		return (mph==null ? "no map available" : mph.MapName);
 	}
 	
 	public boolean isMoving() {
