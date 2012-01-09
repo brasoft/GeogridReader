@@ -407,7 +407,7 @@ public class GraphicTestView extends View {
 				posY = posY + (tapY-y);
 				invalidate();
 				tapX = x;
-				tapY = y;
+				tapY = y; 
 			}
 			break;
 		case MotionEvent.ACTION_DOWN:
