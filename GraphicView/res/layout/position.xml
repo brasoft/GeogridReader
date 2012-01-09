@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/register_root"  
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<TextView
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_marginLeft="5dp"
+    android:text="Breite / Postleitzahl"
+    />
+    <LinearLayout 
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+		<EditText
+			android:id="@+id/editLatitude" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" 
+		    android:layout_marginLeft="5dp"
+		    android:layout_marginRight="5dp"
+		    android:layout_weight="0.9"
+		    android:inputType="numberSigned|numberDecimal"
+			/>
+	</LinearLayout>
+<TextView
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_marginLeft="5dp"
+    android:text="Länge"
+    />
+<EditText
+	android:id="@+id/editLongitude" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+	android:inputType="numberSigned|numberDecimal"
+	/>
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:geogrid="http://schemas.android.com/apk/res/de.brasoft.snippets"
+
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+<de.brasoft.geogridreader.GraphicTestView  
+	android:id="@+id/geogridMap"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_alignParentTop="true"
+    android:layout_above="@+id/bottom"
+    geogrid:mapFile="map"
+    geogrid:posX="0"
+    geogrid:posY="0"
+    />
+    
+<TextView 
+	android:id="@+id/bottom"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+	android:background="#888"
+	android:textColor="#fff"
+	android:text="Bottom"
+	android:layout_alignParentBottom="true"
+	/>
+</RelativeLayout>
