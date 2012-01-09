@@ -26,7 +26,7 @@ public class GraphicViewActivity extends Activity {
 	
 	// Message-Konstanten
 	private static final int MSG_MAP_POSITION = 100;
-	//private static final int MSG_MAP_INTERN_POSITION = 101;
+	//private static final int MSG_MAP_INTERN_POSITION = 101; 
 	public static final int MSG_MY_POSITION = 102;
 	
 	private static final String PLZ_FILE = "plzHashAndroid.txt";
