@@ -11,7 +11,6 @@ abstract public class Dlg_Base {
 	protected Dialog dialog;
 	protected int whatBtn;
 
-	
 	public Dlg_Base(Context con, IDialogEnd end) {
 		this.end = end;
 		this.con = con;
