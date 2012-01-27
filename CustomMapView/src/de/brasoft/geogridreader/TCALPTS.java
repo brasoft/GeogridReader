@@ -20,8 +20,8 @@ public class TCALPTS {
     private double CenterMeridian;   //Bezugsmeridian der Karte
     private double Hr;      // Referenz des Hochwerts (Northing)
     private double Rr;      // Referenz des Rechtswerts (Easting)
-    private GeodeticPoint Pt_Potsdam;
-    private GeodeticPoint Pt_WGS84;
+    //private GeodeticPoint Pt_Potsdam;
+    //private GeodeticPoint Pt_WGS84;
    
     /** Creates a new instance of TCALPTS */
     public TCALPTS() {
@@ -36,8 +36,8 @@ public class TCALPTS {
         Lat = pLat;
         Lon = pLon;
         CenterMeridian = pCM * Math.PI / 180.0;
-        Pt_Potsdam = new GeodeticPoint();
-        Pt_WGS84 = new GeodeticPoint();
+        //Pt_Potsdam = new GeodeticPoint();
+        //Pt_WGS84 = new GeodeticPoint();
         TransMercPoint outPt = new TransMercPoint();
         EllipsoidPar epar = new EllipsoidPar();
         GeoParameter.Bessel1841_Parameters(epar);
@@ -91,7 +91,10 @@ public class TCALPTS {
         // Gilt nur, wenn nicht an verschiedenen Stellen unterschiedliche Parameter
         // eingestellt werden.
         
+        
+        GeodeticPoint Pt_Potsdam = new GeodeticPoint();
         TransverseMercator.Convert_To_Geodetic(R, H, Pt_Potsdam);
+        GeodeticPoint Pt_WGS84 = new GeodeticPoint();
         Pt_Potsdam.Geodetic_Shift_Potsdam_To_WGS84(Pt_WGS84);
         return Pt_WGS84;
     }

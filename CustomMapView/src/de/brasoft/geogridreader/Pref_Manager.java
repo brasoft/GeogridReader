@@ -73,7 +73,7 @@ public class Pref_Manager {
 				edit.commit();
 			}
 		}
-		return pref.getFloat(mapName+KEY_CENTER_MERIDIAN, (float)6.0);
+		return pref.getFloat(mapName+KEY_CENTER_MERIDIAN, (float)9.0);
 	}
 	
 	///////////////////////////////////////////////////////////////////

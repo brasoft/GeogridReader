@@ -80,6 +80,7 @@ public class MPRData {
     public Image GetImage(int idx) {
         
     	TileINFO tInfo = getTileInfo(idx);
+    	if (idx>=mph.maxTiles) return null;
     	
         // Image-Daten der Kachel einlesen
         try {

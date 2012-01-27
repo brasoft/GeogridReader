@@ -10,7 +10,10 @@ import java.util.Iterator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.RectF;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -31,6 +34,7 @@ public class GraphicTestView extends View {
 	// Message-Konstanten
 	private static final int MSG_MAP_POSITION = 100;
 	//private static final int MSG_MAP_INTERN_POSITION = 101;
+	private static final int MSG_NO_ZOOM = 104;
 
     private Handler msgHnd = null;
 	
@@ -57,7 +61,7 @@ public class GraphicTestView extends View {
 	//private String mapBaseFileName = "map";
 	
 	// Hashmap mit <Katenname, baseFilename>
-	private HashMap<String, String> mapNames;
+	private HashMap<String, Info_MapSetItem> mapNames;
 	
 	// Interne GeoPosition
 	private double internLat;
@@ -243,8 +247,47 @@ public class GraphicTestView extends View {
 				}
 			}
 		}
-		Log.w("Paint", "Finish Paint");
+		Log.w("Paint", "Finish Map-Paint");
+
+		// Alle overlays zeichen
+		for (Track track : Track.getAllTracks()) {
+			int color = track.getColor();
+			Paint paint = new Paint();
+			paint.setColor(color);
+			paint.setStyle(Paint.Style.STROKE);
+			paint.setStrokeWidth(3);
+			
+			// Ein Overlay (track) zeichnen
+			Location first = null;
+			Location second = null;
+			for (Location point: track.getPoints()) {
+				first = second;
+				second = point;
+				if (first!=null) {
+					// Linie zwischen zwei Punkten zeichnen
+					Point ptFirst = getXYFromGeoPosition(first);
+					Point ptSecond = getXYFromGeoPosition(second);
+					int startX = ptFirst.x + offsetX;
+					int startY = ptFirst.y + offsetY;
+					int stopX = ptSecond.x + offsetX;
+					int stopY = ptSecond.y + offsetY;
+					canvas.drawLine(startX, startY, stopX, stopY, paint);
+				}
+			}
+		}
+		
+		Log.w("Paint", "Finish Overlay-Paint");
 	}
+	
+	private Point getXYFromGeoPosition(Location l) {
+    	GeodeticPoint geoPt = new GeodeticPoint(l.getLatitude(),l.getLongitude(),0);
+    	// Umrechnung 
+    	int x = mph.getCalPt().getMapPixelX(geoPt, mph.getMasstab(), mph.getPixelMM());
+    	int y = mph.getCalPt().getMapPixelY(geoPt, mph.getMasstab(), mph.getPixelMM());
+    	return new Point(x,y);
+	}
+	
+
 	
 	/**
 	 * Init - vom Konstruktor aufgerufen
@@ -259,7 +302,7 @@ public class GraphicTestView extends View {
 	        // Letzte angezeigte Karte wieder laden
 	        if (G.isLastMap()) {
 	        	String mapName = G.getLastMap();
-	        	mapFileName = mapNames.get(mapName);
+	        	mapFileName = mapNames.get(mapName).getFileName();
 	        } else {
 	        	// Programm wahrscheinlich zum ersten Mal geladen
 	        	// Die erste gefundene Karte anzeigen (oder die mit dem größten Maßstab)
@@ -291,7 +334,7 @@ public class GraphicTestView extends View {
 	        }
 	        
 	        // Center Meridian setzen
-	        setCenterMeridian(G.getCenterMeridian(getName()));
+	        setCenterMeridian(G.getCenterMeridian(getName()), mph);
 
 		    
 		    // Abgeleitete Werte
@@ -310,7 +353,7 @@ public class GraphicTestView extends View {
 		Iterator<String> allKeys = mapNames.keySet().iterator();
 		while (allKeys.hasNext()) {
 			String key = allKeys.next();
-			return mapNames.get(key);
+			return mapNames.get(key).getFileName();
 		}
 		return null;
 	}
@@ -472,7 +515,7 @@ public class GraphicTestView extends View {
     	invalidate();
 	}
 	
-	public void setCenterMeridian(double centerMeridian) {
+	public void setCenterMeridian(double centerMeridian, MPHData mph) {
 		mph.makeCalPt(centerMeridian);
 	}
 	
@@ -496,15 +539,53 @@ public class GraphicTestView extends View {
 		return moving;
 	}
 	
-	public void loadMap(String mapName) {
-		initMapView(mapNames.get(mapName));
+	public double importTrack(File fTrack, int color, boolean reposition) {
+		Track track = new Track(fTrack, color);
+		if (reposition) {
+			Location tmp = track.getCenterPosition();
+			setGeoPosition(tmp.getLatitude(), tmp.getLongitude());
+		}
+		return track.getLen();
+	}
+	
+	public void loadMap(String mapName, boolean reusePosition) {
+		double lat = internLat;
+		double lon = internLon;
+		initMapView(mapNames.get(mapName).getFileName());
+		if (reusePosition) setGeoPosition(lat, lon);
 		invalidate();
+	}
+	
+	public String[] getZoomMapNames(boolean zoomIn) {
+		String[] retw;
+		if(zoomIn) {
+			retw = Info_MapSetItem.getZoomInMapNames(
+					mph.getMasstab(), internLat, internLon);
+		} else {
+			retw = Info_MapSetItem.getZoomOutMapNames(
+					mph.getMasstab(), internLat, internLon);
+		}
+				
+		
+		// Wenn keine passende Karte, Fehlermeldung schicken
+		if (retw==null) {
+			msgHnd.sendEmptyMessage(MSG_NO_ZOOM);
+			return null;
+		}
+		
+		// Bei einer Karte, sofort Kartenwechsel
+		if (retw.length == 1) {
+			loadMap(retw[0], true);
+			return null;
+		}
+		
+		return retw;
 	}
 	
 	public  String[] getMapNames() {
 		// Suche nach Karten
 		
-		mapNames = new HashMap<String, String>();
+		mapNames = new HashMap<String, Info_MapSetItem>();
 
 		// Filter
 		FilenameFilter filter = new FilenameFilter(){
@@ -532,9 +613,36 @@ public class GraphicTestView extends View {
 				MPHData mph = loadMphFromFile(fBase);
 				if (mph!=null) {
 					String mapName = mph.MapName;
-					// Zu einer Map hinzufügen <Kartenname, baseFilename>
-					mapNames.put(mapName, fBase);
 					aryMapNames.add(mapName);
+
+					// Zu einer Map hinzufügen <Kartenname, Info_MapSetItem>
+					Info_MapSetItem iItem = new Info_MapSetItem(fBase, mph.getMasstab(), mapNames);
+					
+					// Die Kartenüberdeckung berechnen und speichern
+					// Center Meridian setzen
+			        setCenterMeridian(G.getCenterMeridian(mapName), mph);
+
+					// Punkt (links, oben) bestimmen
+					GeodeticPoint geoTopLeft = mph.getCalPt().getGeoKoordinate(
+							0, 0, mph.getMasstab(), mph.getPixelMM());
+
+					// Punkt (rechts, unten) bestimmen
+					GeodeticPoint geoBottomRight = mph.getCalPt().getGeoKoordinate(
+							mph.getMaxXPixel(), mph.getMaxYPixel(), 
+							mph.getMasstab(), mph.getPixelMM());
+					
+					// Überdeckungs-Rechteck (mit getauschten Latitudes)
+					RectF mapCov = new RectF(
+							(float) Math.toDegrees(geoTopLeft.GeoLon),
+							(float) Math.toDegrees(geoBottomRight.GeoLat),
+							(float) Math.toDegrees(geoBottomRight.GeoLon),
+							(float) Math.toDegrees(geoTopLeft.GeoLat));
+					
+					// Überdeckung hinzufügen
+					iItem.setMapCoverage(mapCov);
+
+					// Objekt zur Map hinzufügen
+					mapNames.put(mapName, iItem);
 				}
 			}
 		}
@@ -545,5 +653,9 @@ public class GraphicTestView extends View {
 		this.msgHnd = msgHnd;
 		// Gleich eine Position senden
 		sendInternGeoPoint();
+	}
+	
+	public String getAllMapInfo() {
+		return Info_MapSetItem.getHtmlInfo();
 	}
 }
