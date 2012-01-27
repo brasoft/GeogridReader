@@ -20,12 +20,15 @@ public class Dlg_ListAuswahl extends Dlg_Base {
 		}
 		return instances.get(dm);
 	}
+	
+	public static void remove(Dlg_Manager dm) {
+		instances.remove(dm);
+	}
 
 	private Dlg_ListAuswahl(Context con, IDialogEnd end, String[] itemAry) {
 		super(con, end);
 		this.itemAry = itemAry;
     	AlertDialog.Builder builder = new AlertDialog.Builder(con);
-    	//builder.setPositiveButton("Ok", btnOk);
     	builder.setNegativeButton("Cancel", btnCancel);
     	builder.setTitle("Karte auswählen");
     	builder.setItems(itemAry, btnOk);
@@ -42,7 +45,7 @@ public class Dlg_ListAuswahl extends Dlg_Base {
 	DialogInterface.OnClickListener btnCancel = new DialogInterface.OnClickListener() {
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
-			
+			cancelClick();
 		} };
 		
 	@Override

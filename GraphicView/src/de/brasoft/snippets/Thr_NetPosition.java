@@ -83,6 +83,7 @@ public class Thr_NetPosition implements Runnable {
             switch (msg.what) {
             
             case MSG_TIME_OUT:
+            	handler.sendEmptyMessage(GraphicViewActivity.MSG_NO_POSITION);
             	Looper.myLooper().quit();
             	break;
             	

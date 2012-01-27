@@ -3,6 +3,7 @@ package de.brasoft.snippets;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -39,6 +40,14 @@ public class Dlg_Manager {
 			dlgMap.put(obj, new Integer(dlgId++));
 		}
 		return dlgMap.get(obj);
+	}
+	
+	public void removeDialog(Dlg_Base obj, Activity con) {
+		if(dlgMap.containsKey(obj)) {
+			int id = dlgMap.get(obj);
+			dlgMap.remove(obj);
+			con.removeDialog(id);
+		}
 	}
 	
 	public Dialog getDialog(int id) {
